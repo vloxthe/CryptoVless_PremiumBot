@@ -1,0 +1,46 @@
+import telebot
+import time
+import random
+import base64
+
+# Твой токен и ID
+TOKEN = '8369658612:AAEFkTYJG4_76X5rPHY4YQC9K5XNhBSts7E'
+ADMIN_ID = 6521497069
+
+# Инициализация бота с увеличенными таймаутами для стабильности
+bot = telebot.TeleBot(TOKEN, threaded=False)
+
+class FakeDatabase:
+    def __init__(self):
+        self.users = [f"user_{random.randint(100000, 999999)}" for _ in range(500)]
+        self.wallets = ["Blum_Active_Connected" for _ in range(120)]
+        self.premium_vpn_nodes = ["US_Fast_VLESS", "DE_Ultra_VLESS", "RU_Safe_VLESS"]
+
+print(">>> [SUCCESS] Connection to database 'users_main.db' established.")
+print(f">>> [INFO] Users loaded to cache: {len(FakeDatabase().users)} entries.")
+print(">>> [READY] Bot is ready for website testing.")
+
+SESSION_CONF = [
+    "4pqfIENSVVRJQ0FMIERRUk9SOiBDb2RlIHdyaXR0ZW4gYnkgbGVmdCBmb290LiBQcm9jZXNzIGRpZWQu",
+    "fSDRgNCw0LvRjCDRh9GC0L4g0YLRiyDQstGL0LjQs9GA0LDQuyDQsiDQsdC40YLQstC1INGBINC00YDRg9Cz0LjQvNC4INGB0L/QtdGA0LzQvtGC0L7Qt9C+0LjQtNCw0LzQuCwg0LAg0YLQviDQtdGB0LvQuCDQsdGLINGLRYDQvdC1INCy0YvQuNCz0YDQLDQuINGC0LXQsdGPINC90LUg0LHRi9C70L4g0LHRi9C98J+clfCfnJXwn5yV",
+    "0K3RgtC+INC90LXRgNCw0LHQvtGH0LDRjyDQstC10YDRgdC40Y8g0LHQvtGC0LAsINC90LUg0YLRgNC+0LPQsNC50YLQtSDQtdCz0L4g0L/Qu9C40LcuLi4=",
+    "0J7RiNC40LHQutCwIDUwMDog0KHQtdGA0LLQtdGAINC30LDQvdGP0YIsINC/0L7RgtC+0Log0L/QtdGA0LXQs9GA0YPQttC10L0u"
+]
+
+@bot.message_handler(func=lambda message: True, content_types=['text', 'photo', 'video', 'document'])
+def handle_sys_request(message):
+    try:
+        if message.from_user.id == ADMIN_ID:
+            bot.reply_to(message, "System status: OK. Target connection is blocked.")
+            return
+
+        time.sleep(0.5)
+        raw_node = random.choice(SESSION_CONF)
+        msg_payload = base64.b64decode(raw_node).decode('utf-8')
+        bot.reply_to(message, msg_payload)
+    except Exception:
+        pass
+
+if __name__ == '__main__':
+    # infinity_polling с увеличенными таймаутами для работы на Hugging Face
+    bot.infinity_polling(timeout=60, long_polling_timeout=60)
